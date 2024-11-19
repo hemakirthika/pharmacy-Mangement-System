@@ -1,0 +1,137 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Scanner;
+
+public class PharmacyManagementSystem {
+    // Database connection details
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/pharmacy_db";
+    private static final String DB_USER = "kirthika"; // Replace with your MySQL username
+    private static final String DB_PASSWORD = "1234"; // Replace with your MySQL password
+
+    private static Connection connectToDatabase() {
+        try {
+            return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+        } catch (SQLException e) {
+            System.out.println("Database connection failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean running = true;
+
+        while (running) {
+            System.out.println("\n=== Pharmacy Management System ===");
+            System.out.println("1. Add Customer");
+            System.out.println("2. Add Medicine");
+            System.out.println("3. Add Sales");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+            switch (choice) {
+                case 1:
+                    addCustomer(scanner);
+                    break;
+                case 2:
+                    addMedicine(scanner);
+                    break;
+                case 3:
+                    addSales(scanner);
+                    break;
+                case 4:
+                    running = false;
+                    System.out.println("Exiting the system...");
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+
+        scanner.close();
+    }
+
+    private static void addCustomer(Scanner scanner) {
+        System.out.print("Enter customer name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter customer phone: ");
+        String phone = scanner.nextLine();
+
+        System.out.print("Enter customer address: ");
+        String address = scanner.nextLine();
+
+        try (Connection conn = connectToDatabase()) {
+            if (conn == null) return;
+
+            String sql = "INSERT INTO customers (name, phone, address) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, name);
+            stmt.setString(2, phone);
+            stmt.setString(3, address);
+            stmt.executeUpdate();
+
+            System.out.println("Customer added successfully!");
+        } catch (SQLException e) {
+            System.out.println("Error adding customer: " + e.getMessage());
+        }
+    }
+
+    private static void addMedicine(Scanner scanner) {
+        System.out.print("Enter medicine name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Enter stock quantity: ");
+        int stock = scanner.nextInt();
+
+        System.out.print("Enter price per unit: ");
+        double price = scanner.nextDouble();
+        scanner.nextLine(); // Consume the newline character
+
+        try (Connection conn = connectToDatabase()) {
+            if (conn == null) return;
+
+            String sql = "INSERT INTO medicines (name, stock, price) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, name);
+            stmt.setInt(2, stock);
+            stmt.setDouble(3, price);
+            stmt.executeUpdate();
+
+            System.out.println("Medicine added successfully!");
+        } catch (SQLException e) {
+            System.out.println("Error adding medicine: " + e.getMessage());
+        }
+    }
+
+    private static void addSales(Scanner scanner) {
+        System.out.print("Enter quantity sold: ");
+        int quantity = scanner.nextInt();
+
+        System.out.print("Enter price per unit: ");
+        double price = scanner.nextDouble();
+
+        double totalSales = quantity * price;
+        scanner.nextLine(); // Consume the newline character
+
+        try (Connection conn = connectToDatabase()) {
+            if (conn == null) return;
+
+            String sql = "INSERT INTO sales (quantity, price_per_unit, total_sales) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, quantity);
+            stmt.setDouble(2, price);
+            stmt.setDouble(3, totalSales);
+            stmt.executeUpdate();
+
+            System.out.println("Sales record added successfully! Total Sales: $" + totalSales);
+        } catch (SQLException e) {
+            System.out.println("Error adding sales record: " + e.getMessage());
+        }
+    }
+}
